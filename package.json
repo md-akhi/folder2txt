@@ -1,0 +1,32 @@
+{
+  "name": "folder2txt",
+  "version": "1.0.0",
+  "description": "این پروژه یک وب‌اپلیکیشن ساده و کاربردی است که به کاربر امکان می‌دهد مسیر یک پوشه را روی سرور وارد کند و در خروجی یک فایل متنی شامل ساختار درختی و محتوای تمام فایل‌های متنی آن پوشه دریافت کند. طراحی بسیار سبک و بدون وابستگی‌های اضافی است.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/md-akhi/folder2txt.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/md-akhi/folder2txt/issues"
+  },
+  "homepage": "https://github.com/md-akhi/folder2txt#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
