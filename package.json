@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint src --ext .ts",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,10 +21,24 @@
   },
   "homepage": "https://github.com/md-akhi/folder2txt#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "winston": "^3.19.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.6",
+    "@types/express-ejs-layouts": "^2.5.4",
+    "@types/helmet": "^0.0.48",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^25.3.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",

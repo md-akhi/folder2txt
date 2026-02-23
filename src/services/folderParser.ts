@@ -1,5 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
+import { config } from "../config";
+import logger from "../utils/logger";
 
 export interface FileInfo {
   path: string;
@@ -23,6 +25,7 @@ async function isBinaryFile(filePath: string): Promise<boolean> {
 export async function walkDir(
   dir: string,
   baseDir: string,
+  ignorePatterns: string[] = config.defaultIgnorePatterns,
 ): Promise<FileInfo[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const results: FileInfo[] = [];
@@ -31,22 +34,28 @@ export async function walkDir(
     const fullPath = path.join(dir, entry.name);
     const relativePath = path.relative(baseDir, fullPath);
 
-    if (entry.isDirectory()) {
-      if (
-        entry.name === "node_modules" ||
-        entry.name === ".git" ||
-        entry.name.startsWith(".")
-      ) {
-        continue;
+    // Check ignore patterns
+    const shouldIgnore = ignorePatterns.some((pattern) => {
+      if (pattern.endsWith("/")) {
+        return entry.isDirectory() && entry.name === pattern.slice(0, -1);
       }
-      const subResults = await walkDir(fullPath, baseDir);
+      if (pattern.includes("*")) {
+        // simple wildcard, could be improved with minimatch
+        const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+        return regex.test(entry.name);
+      }
+      return entry.name === pattern;
+    });
+    if (shouldIgnore) continue;
+
+    if (entry.isDirectory()) {
+      const subResults = await walkDir(fullPath, baseDir, ignorePatterns);
       results.push(...subResults);
     } else if (entry.isFile()) {
       try {
         const stats = await fs.stat(fullPath);
         const size = stats.size;
-        if (size > 1024 * 1024) {
-          // > 1MB
+        if (size > config.maxFileSize) {
           results.push({ path: relativePath, isBinary: true, size });
           continue;
         }
@@ -59,6 +68,7 @@ export async function walkDir(
           results.push({ path: relativePath, content, size });
         }
       } catch (err: any) {
+        logger.warn(`Error reading file ${fullPath}: ${err.message}`);
         results.push({ path: relativePath, error: err.message });
       }
     }

@@ -7,6 +7,9 @@
 ### حالت توسعه (با nodemon):
 
 ```bash
+npm install
+cp .env.example .env
+# ویرایش .env
 npm run dev
 ```
 
@@ -15,6 +18,14 @@ npm run dev
 ```bash
 npm run build
 npm start
+```
+
+## تست
+
+برای تست می‌توان از ابزارهایی مانند curl یا Postman استفاده کرد:
+
+```bash
+curl -X POST -d "folderPath=/home/user/project" http://localhost:3000/process --output output.txt
 ```
 
 در مرورگر به آدرس http://localhost:3000 بروید و مسیر یک پوشه را وارد کنید (مثلاً C:\Projects\myapp در ویندوز یا /home/user/myapp در لینوکس/مک). دقت کنید که سرور باید به آن مسیر دسترسی داشته باشد.

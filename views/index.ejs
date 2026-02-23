@@ -1,0 +1,13 @@
+<!-- خط زیر را حذف کنید -->
+<!-- <%# layout('layout') -%>   -->
+<p>مسیر یک پوشه روی سرور را وارد کنید تا ساختار و محتوای فایل‌های متنی آن را به صورت یک فایل دریافت کنید.</p>
+
+<form action="/process" method="post">
+    <label for="folderPath">مسیر پوشه:</label>
+    <input type="text" id="folderPath" name="folderPath" placeholder="مثال: /home/user/project یا C:\myproject" required>
+    <button type="submit">پردازش و دریافت خروجی</button>
+</form>
+
+<% if (locals.error) { %>
+    <div class="error"><%= error %></div>
+<% } %>
