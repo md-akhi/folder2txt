@@ -2,6 +2,8 @@
 
 این پروژه یک وب‌اپلیکیشن ساده و کاربردی است که به کاربر امکان می‌دهد مسیر یک پوشه را روی سرور وارد کند و در خروجی یک فایل متنی شامل ساختار درختی و محتوای تمام فایل‌های متنی آن پوشه دریافت کند. طراحی بسیار سبک و بدون وابستگی‌های اضافی است.
 
+This project is a simple and practical web application that allows users to input a folder path on the server. In return, it generates a text file containing the directory tree structure and the contents of all text files within that folder.
+
 ## اجرای برنامه
 
 ### حالت توسعه (با nodemon):
