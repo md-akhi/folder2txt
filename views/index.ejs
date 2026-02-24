@@ -1,13 +1,131 @@
-<!-- خط زیر را حذف کنید -->
-<!-- <%# layout('layout') -%>   -->
-<p>مسیر یک پوشه روی سرور را وارد کنید تا ساختار و محتوای فایل‌های متنی آن را به صورت یک فایل دریافت کنید.</p>
+<!-- تب‌ها -->
+<div class="tabs">
+  <button class="tab-btn active" id="tabServerBtn">
+    <i class="fas fa-server"></i> پردازش روی سرور
+  </button>
+  <button class="tab-btn" id="tabLocalBtn">
+    <i class="fas fa-laptop"></i> پردازش محلی (در مرورگر)
+  </button>
+</div>
 
-<form action="/process" method="post">
-    <label for="folderPath">مسیر پوشه:</label>
-    <input type="text" id="folderPath" name="folderPath" placeholder="مثال: /home/user/project یا C:\myproject" required>
-    <button type="submit">پردازش و دریافت خروجی</button>
-</form>
+<!-- تب سرور -->
+<div class="tab-content active" id="tabServer">
+  <form action="/process" method="post" id="serverForm">
+    <div class="form-group">
+      <label for="folderPath"
+        ><i class="fas fa-map-marker-alt"></i> مسیر پوشه روی سرور:</label
+      >
+      <div class="input-wrapper">
+        <i class="fas fa-folder"></i>
+        <input
+          type="text"
+          id="folderPath"
+          name="folderPath"
+          placeholder="/home/user/project  یا  C:\myproject"
+          required
+        />
+      </div>
+    </div>
 
-<% if (locals.error) { %>
-    <div class="error"><%= error %></div>
-<% } %>
+    <!-- فیلدهای مخفی برای ارسال گزینه‌ها -->
+    <input
+      type="hidden"
+      name="selectedTypes"
+      id="selectedTypesInput"
+      value=""
+    />
+    <input type="hidden" name="cleanMode" id="cleanModeInput" value="false" />
+    <input
+      type="hidden"
+      name="separator"
+      id="separatorInput"
+      value="--- {filename} ---"
+    />
+    <input type="hidden" name="commonOnly" id="commonOnlyInput" value="false" />
+
+    <button type="submit" class="btn-primary" id="serverSubmitBtn">
+      پردازش و دریافت خروجی
+    </button>
+  </form>
+  <p style="margin-top: 15px; color: #64748b">
+    <i class="fas fa-info-circle"></i> گزینه‌های پیشرفته در تب محلی قابل تنظیم
+    هستند و به سرور ارسال می‌شوند.
+  </p>
+</div>
+
+<!-- تب محلی -->
+<div class="tab-content" id="tabLocal">
+  <div class="drop-zone" id="dropZone">
+    <i class="fas fa-cloud-upload-alt"></i>
+    <p>پوشه را اینجا بکشید و رها کنید</p>
+    <small>یا</small>
+    <button type="button" class="browse-btn" id="browseBtn">انتخاب پوشه</button>
+    <input
+      type="file"
+      id="fileInput"
+      class="file-input"
+      webkitdirectory
+      directory
+      multiple
+      style="display: none"
+    />
+  </div>
+
+  <div class="file-types" id="fileTypesSection" style="display: none">
+    <h3>انواع فایل‌های یافت شده</h3>
+    <div class="file-type-controls">
+      <button type="button" id="selectAllBtn">انتخاب همه</button>
+      <button type="button" id="deselectAllBtn">عدم انتخاب همه</button>
+    </div>
+    <div class="file-type-grid" id="fileTypeGrid">
+      <!-- آیتم‌ها با js ساخته می‌شوند -->
+    </div>
+  </div>
+
+  <div class="options-panel">
+    <h3>گزینه‌ها</h3>
+    <div class="option-row">
+      <label for="separatorLocal">جداکننده بین فایل‌ها</label>
+      <input
+        type="text"
+        id="separatorLocal"
+        value="--- {filename} ---"
+        placeholder="--- {filename} ---"
+      />
+    </div>
+    <div class="option-row">
+      <label for="outputName">نام فایل خروجی</label>
+      <input
+        type="text"
+        id="outputName"
+        value="merged_files.txt"
+        placeholder="merged_files.txt"
+      />
+    </div>
+    <div class="checkbox-option">
+      <input type="checkbox" id="cleanModeLocal" checked />
+      <label for="cleanModeLocal"
+        >پاک‌سازی و فشرده‌سازی (حذف کامنت‌ها و فاصله‌های اضافی)</label
+      >
+    </div>
+    <div class="checkbox-option">
+      <input type="checkbox" id="commonOnlyLocal" />
+      <label for="commonOnlyLocal"
+        >فقط انواع فایل رایج (.txt, .js, .py, .json, .md, .html, .css, .yml,
+        .xml, .sql, .gradle, .kt)</label
+      >
+    </div>
+  </div>
+
+  <div class="status-message" id="statusMessage"></div>
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <button class="btn-primary" id="processLocalBtn" disabled>
+    ادغام فایل‌ها
+  </button>
+  <button class="btn-secondary" id="copyLocalBtn">📋 کپی به کلیپ‌بورد</button>
+
+  <div class="file-list" id="fileList" style="display: none"></div>
+</div>

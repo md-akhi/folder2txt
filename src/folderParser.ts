@@ -1,16 +1,18 @@
 import fs from "fs/promises";
 import path from "path";
-import { config } from "../config";
-import logger from "../utils/logger";
 
-export interface FileInfo {
+// Types for the file entries
+export interface FileEntry {
   path: string;
   content?: string;
   isBinary?: boolean;
-  error?: string;
   size?: number;
+  error?: string;
 }
 
+/**
+ * Checks if a file is binary by reading its first 1024 bytes and looking for null bytes.
+ */
 async function isBinaryFile(filePath: string): Promise<boolean> {
   const buffer = Buffer.alloc(1024);
   const fd = await fs.open(filePath, "r");
@@ -22,40 +24,39 @@ async function isBinaryFile(filePath: string): Promise<boolean> {
   }
 }
 
+/**
+ * Recursively walks a directory and collects file information.
+ * Ignores node_modules, .git, and dot-folders.
+ */
 export async function walkDir(
   dir: string,
   baseDir: string,
-  ignorePatterns: string[] = config.defaultIgnorePatterns,
-): Promise<FileInfo[]> {
+): Promise<FileEntry[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  const results: FileInfo[] = [];
+  const results: FileEntry[] = [];
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     const relativePath = path.relative(baseDir, fullPath);
 
-    // Check ignore patterns
-    const shouldIgnore = ignorePatterns.some((pattern) => {
-      if (pattern.endsWith("/")) {
-        return entry.isDirectory() && entry.name === pattern.slice(0, -1);
-      }
-      if (pattern.includes("*")) {
-        // simple wildcard, could be improved with minimatch
-        const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
-        return regex.test(entry.name);
-      }
-      return entry.name === pattern;
-    });
-    if (shouldIgnore) continue;
-
     if (entry.isDirectory()) {
-      const subResults = await walkDir(fullPath, baseDir, ignorePatterns);
+      // Skip common unwanted directories
+      if (
+        entry.name === "node_modules" ||
+        entry.name === ".git" ||
+        entry.name.startsWith(".")
+      ) {
+        continue;
+      }
+      const subResults = await walkDir(fullPath, baseDir);
       results.push(...subResults);
     } else if (entry.isFile()) {
       try {
         const stats = await fs.stat(fullPath);
         const size = stats.size;
-        if (size > config.maxFileSize) {
+
+        // Skip files larger than 1MB (binary files are not read anyway)
+        if (size > 1024 * 1024) {
           results.push({ path: relativePath, isBinary: true, size });
           continue;
         }
@@ -68,18 +69,22 @@ export async function walkDir(
           results.push({ path: relativePath, content, size });
         }
       } catch (err: any) {
-        logger.warn(`Error reading file ${fullPath}: ${err.message}`);
         results.push({ path: relativePath, error: err.message });
       }
     }
   }
+
   return results;
 }
 
-export function generateTree(files: FileInfo[], root: string): string {
+/**
+ * Generates a tree-like structure from the list of file paths.
+ */
+export function generateTree(files: FileEntry[], root: string): string {
   const treeLines: string[] = [];
   const pathSet = new Set<string>();
 
+  // Collect all directory paths
   for (const f of files) {
     const parts = f.path.split(path.sep);
     let current = "";
@@ -96,7 +101,6 @@ export function generateTree(files: FileInfo[], root: string): string {
 
   const sorted = Array.from(pathSet).sort();
   const prefix = path.basename(root) || root;
-
   treeLines.push(prefix + "/");
 
   for (const p of sorted) {
@@ -111,9 +115,19 @@ export function generateTree(files: FileInfo[], root: string): string {
   return treeLines.join("\n");
 }
 
-export function formatOutput(files: FileInfo[], root: string): string {
+/**
+ * Formats the collected file entries into a single output string.
+ * Includes a tree structure and the content of each file.
+ * @param separator The string to use as a separator before each file. May contain {filename}.
+ */
+export function formatOutput(
+  files: FileEntry[],
+  root: string,
+  separator: string = "--- {filename} ---",
+): string {
   const tree = generateTree(files, root);
   const parts: string[] = [];
+
   parts.push("=".repeat(50));
   parts.push("STRUCTURE");
   parts.push("=".repeat(50));
@@ -125,7 +139,9 @@ export function formatOutput(files: FileInfo[], root: string): string {
   const sortedFiles = [...files].sort((a, b) => a.path.localeCompare(b.path));
 
   for (const file of sortedFiles) {
-    parts.push(`=== ${file.path} ===`);
+    const header = separator.replace("{filename}", file.path);
+    parts.push(header);
+
     if (file.error) {
       parts.push(`[ERROR: ${file.error}]`);
     } else if (file.isBinary) {

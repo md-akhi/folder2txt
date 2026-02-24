@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> | Folder2Txt</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="./css/font-awesome-all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/assets/css/font-awesome-all.min.css">
+    <!-- فونت وزیر (اختیاری) -->
+    <link rel="stylesheet" href="/assets/css/Vazirmatn-font-face.min.css">
     <style>
         * {
             margin: 0;
@@ -28,7 +30,7 @@
             backdrop-filter: blur(10px);
             border-radius: 30px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
             padding: 40px;
             transition: transform 0.3s ease;
@@ -61,6 +63,47 @@
             color: #475569;
             font-size: 1.1rem;
             line-height: 1.6;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn i {
+            font-size: 1.2rem;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .form-group {
@@ -108,88 +151,266 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        input[type="text"]::placeholder {
-            color: #cbd5e1;
-            font-size: 0.9rem;
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f1f5f9;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
 
-        .btn-submit {
-            width: 100%;
-            padding: 16px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .drop-zone.drag-over {
+            border-color: #667eea;
+            background: #e0e7ff;
+            transform: scale(1.02);
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: #475569;
+        }
+
+        .browse-btn {
+            background: #667eea;
             color: white;
             border: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 30px;
+            margin-top: 10px;
             cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .browse-btn:hover {
+            background: #5a67d8;
+        }
+
+        .file-types {
+            margin: 25px 0;
+        }
+
+        .file-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .file-type-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+            padding: 6px 10px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
         }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px -5px rgba(102, 126, 234, 0.6);
+        .file-type-item:hover {
+            background: #edf2f7;
+            transform: translateY(-1px);
         }
 
-        .btn-submit:active {
-            transform: translateY(0);
+        .file-type-item input {
+            margin-left: 6px;
         }
 
-        .btn-submit i {
-            font-size: 1.2rem;
-        }
-
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 30px 0 20px;
-            justify-content: center;
-        }
-
-        .feature-item {
-            background: #f1f5f9;
-            padding: 10px 15px;
-            border-radius: 40px;
+        .file-type-item label {
             font-size: 0.9rem;
+            font-weight: 500;
             color: #334155;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .file-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-right: 5px;
+        }
+
+        .file-type-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-type-controls button {
+            padding: 6px 12px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .file-type-controls button:hover {
+            background: #cbd5e1;
+        }
+
+        .options-panel {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 25px 0;
+        }
+
+        .option-row {
+            margin-bottom: 15px;
+        }
+
+        .option-row label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #334155;
+        }
+
+        .option-row input[type="text"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            transition: 0.3s;
+        }
+
+        .option-row input[type="text"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .checkbox-option {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .feature-item i {
-            color: #667eea;
+        .checkbox-option input {
+            width: 18px;
+            height: 18px;
         }
 
-        .error-message {
+        .status-message {
+            padding: 12px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-message.error {
             background: #fee2e2;
-            border-right: 5px solid #dc2626;
             color: #991b1b;
-            padding: 15px 20px;
-            border-radius: 16px;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            animation: shake 0.5s ease;
+            border: 1px solid #fecaca;
         }
 
-        .error-message i {
-            font-size: 1.5rem;
-            color: #dc2626;
+        .status-message.processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe7a0;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        .file-list {
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .file-list-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #edf2f7;
+            color: #1e293b;
         }
 
         .footer-note {
@@ -203,16 +424,11 @@
 
         .footer-note i {
             color: #ef4444;
-            margin: 0 3px;
         }
 
-        /* Responsive */
-        @media (max-width: 480px) {
-            .card {
-                padding: 25px;
-            }
-            .header h1 {
-                font-size: 2rem;
+        @media (max-width: 640px) {
+            .tabs {
+                flex-direction: column;
             }
         }
     </style>
@@ -220,52 +436,19 @@
 <body>
     <div class="card">
         <div class="header">
-            <h1>
-                <i class="fas fa-folder-open"></i>
-                Folder2Txt
-            </h1>
+            <h1><i class="fas fa-folder-open"></i> Folder2Txt</h1>
             <p>پوشه‌ی خود را به یک فایل متنی یکپارچه تبدیل کنید.</p>
         </div>
 
-        <form action="/process" method="post">
-            <div class="form-group">
-                <label for="folderPath">
-                    <i class="fas fa-map-marker-alt"></i> مسیر پوشه:
-                </label>
-                <div class="input-wrapper">
-                    <i class="fas fa-folder"></i>
-                    <input type="text" 
-                           id="folderPath" 
-                           name="folderPath" 
-                           placeholder="/home/user/project  یا  C:\myproject" 
-                           required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-cogs"></i> پردازش و دریافت خروجی
-                <i class="fas fa-download"></i>
-            </button>
-        </form>
-
-        <% if (locals.error) { %>
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span><%= error %></span>
-            </div>
-        <% } %>
-
-        <div class="features">
-            <span class="feature-item"><i class="fas fa-code"></i> تشخیص خودکار باینری</span>
-            <span class="feature-item"><i class="fas fa-tree"></i> نمایش درخت پوشه</span>
-            <span class="feature-item"><i class="fas fa-file-alt"></i> خروجی یکپارچه</span>
-            <span class="feature-item"><i class="fas fa-shield-alt"></i> امن و خصوصی</span>
-        </div>
+        <!-- محتوای اصلی از index.ejs در اینجا قرار می‌گیرد -->
+        <%- body %>
 
         <div class="footer-note">
-            <i class="fas fa-info-circle"></i> 
-            پوشه‌های <strong>node_modules</strong>، <strong>.git</strong> و فایل‌های باینری نادیده گرفته می‌شوند.
+            <i class="fas fa-heart"></i> 
+            <span>پوشه‌های node_modules، .git و فایل‌های باینری نادیده گرفته می‌شوند.</span>
         </div>
     </div>
+
+    <script src="/assets/js/main.js"></script>
 </body>
 </html>
