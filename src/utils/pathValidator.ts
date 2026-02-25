@@ -1,11 +1,10 @@
 import path from "path";
 import fs from "fs/promises";
+import { config } from "../config";
 
 export async function validatePath(inputPath: string): Promise<string> {
-  // Resolve to absolute path
   const resolvedPath = path.resolve(inputPath);
 
-  // Check if path exists and is accessible
   try {
     const stats = await fs.stat(resolvedPath);
     if (!stats.isDirectory()) {
@@ -18,11 +17,10 @@ export async function validatePath(inputPath: string): Promise<string> {
     throw new Error(`Cannot access directory: ${err.message}`);
   }
 
-  // Optional: restrict to a base directory (e.g., process.env.BASE_DIR)
-  const baseDir = process.env.BASE_DIR
-    ? path.resolve(process.env.BASE_DIR)
-    : null;
-  if (baseDir && !resolvedPath.startsWith(baseDir)) {
+  if (
+    config.baseDir &&
+    !resolvedPath.startsWith(path.resolve(config.baseDir))
+  ) {
     throw new Error("Access to this directory is not allowed");
   }
 

@@ -1,32 +1,46 @@
-import { Router } from "express";
-import { validateFolderPath } from "../middlewares/validation";
-import { validatePath } from "../utils/pathValidator";
-import { walkDir, formatOutput } from "../services/folderParser";
-import { AppError } from "../middlewares/errorHandler";
+import { Router, Request, Response, NextFunction } from "express";
+import { z } from "zod";
+import { processFolder } from "../services/folderProcessor";
 import logger from "../utils/logger";
 
 const router = Router();
 
-router.post("/", validateFolderPath, async (req, res, next) => {
+const processSchema = z.object({
+  folderPath: z.string().min(1, "مسیر پوشه الزامی است"),
+  selectedTypes: z.string().optional().default(""),
+  cleanMode: z.enum(["true", "false"]).default("false"),
+  separator: z.string().default("--- {filename} ---"),
+  commonOnly: z.enum(["true", "false"]).default("false"),
+});
+
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const rawPath = req.body.folderPath;
-    const resolvedPath = await validatePath(rawPath);
-    logger.info(`Processing directory: ${resolvedPath}`);
-    const files = await walkDir(resolvedPath, resolvedPath);
-    const output = formatOutput(files, resolvedPath);
+    const parsed = processSchema.parse(req.body);
+    const folderPath = parsed.folderPath;
+    const selectedTypes = parsed.selectedTypes
+      ? parsed.selectedTypes.split(",").filter((s) => s.trim())
+      : [];
+    const cleanMode = parsed.cleanMode === "true";
+    const separator = parsed.separator;
+    const commonOnly = parsed.commonOnly === "true";
+
+    logger.info(`Processing directory: ${folderPath}`);
+
+    const output = await processFolder(folderPath, {
+      selectedTypes,
+      cleanMode,
+      separator,
+      commonOnly,
+    });
+
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="folder2txt_output.txt"',
+      'attachment; filename="folder_content.txt"',
     );
     res.send(output);
-  } catch (err) {
-    // اگر خطا از نوع AppError باشد و statusCode 400 داشته باشد، می‌توانیم صفحه خطا نشان دهیم
-    // اما چون این مسیر برای دانلود فایل است، بهتر است همان خطا را به صورت JSON برگردانیم
-    // یا اگر می‌خواهید صفحه خطا نمایش دهید، می‌توانید اینجا res.render('error', ...) کنید.
-    next(
-      new AppError(err instanceof Error ? err.message : "Unknown error", 400),
-    );
+  } catch (error) {
+    next(error);
   }
 });
 
