@@ -1,6 +1,6 @@
 {
   "name": "folder2txt",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Convert folder structure and text files to a single text file – server & client processing",
   "main": "dist/server.js",
   "scripts": {
