@@ -1,33 +1,34 @@
 import path from "path";
-import { walkDir, formatOutput } from "../folderParser";
-
-interface ProcessOptions {
-  selectedTypes?: string[];
-  cleanMode?: boolean;
-  separator?: string;
-  commonOnly?: boolean;
-}
+import { walkDir } from "./folderWalker";
+import {
+  ProcessOptions,
+  ProcessResult,
+  cleanContent,
+  formatOutput,
+} from "../shared/core";
 
 export async function processFolder(
   folderPath: string,
   options: ProcessOptions = {},
-): Promise<string> {
-  // (اختیاری) اعتبارسنجی مسیر با BASE_DIR
-  // ...
+): Promise<ProcessResult> {
+  const files = await walkDir(
+    folderPath,
+    folderPath,
+    options.ignorePatterns,
+    0,
+    options.maxDepth,
+  );
 
-  const files = await walkDir(folderPath, folderPath);
-
-  // اعمال فیلتر selectedTypes
+  // اعمال فیلترهای انتخابی
   let filteredFiles = files;
   if (options.selectedTypes && options.selectedTypes.length > 0) {
     const typesSet = new Set(options.selectedTypes);
-    filteredFiles = files.filter((f: any) => {
+    filteredFiles = files.filter((f) => {
       const ext = path.extname(f.path).slice(1).toLowerCase();
       return typesSet.has(ext);
     });
   }
 
-  // اعمال فیلتر commonOnly
   if (options.commonOnly) {
     const commonTypes = new Set([
       "txt",
@@ -44,13 +45,12 @@ export async function processFolder(
       "gradle",
       "kt",
     ]);
-    filteredFiles = filteredFiles.filter((f: any) => {
+    filteredFiles = filteredFiles.filter((f) => {
       const ext = path.extname(f.path).slice(1).toLowerCase();
       return commonTypes.has(ext);
     });
   }
 
-  // پاک‌سازی محتوا اگر فعال باشد
   if (options.cleanMode) {
     for (const f of filteredFiles) {
       if (f.content) {
@@ -60,65 +60,12 @@ export async function processFolder(
     }
   }
 
-  // تولید خروجی با جداکننده دلخواه
-  return formatOutput(filteredFiles, folderPath, options.separator);
-}
+  const output = formatOutput(filteredFiles, folderPath, options.separator);
 
-function cleanContent(content: string, ext: string): string {
-  // مشابه تابع سمت کاربر اما برای Node
-  if (["txt", "md", "json", "csv"].includes(ext)) {
-    return content;
-  }
-
-  let lines = content.split("\n");
-  lines = lines.map((line) => {
-    if (
-      ["js", "ts", "jsx", "tsx", "java", "c", "cpp", "cs", "go"].includes(ext)
-    ) {
-      const idx = line.indexOf("//");
-      if (idx >= 0 && !isInsideString(line, idx)) {
-        line = line.substring(0, idx);
-      }
-    } else if (["py", "rb", "sh", "bash"].includes(ext)) {
-      const idx = line.indexOf("#");
-      if (idx >= 0 && !isInsideString(line, idx)) {
-        line = line.substring(0, idx);
-      }
-    } else if (["html", "xml", "xhtml"].includes(ext)) {
-      line = line.replace(/<!--[\s\S]*?-->/g, "");
-    } else if (["css", "scss", "less"].includes(ext)) {
-      line = line.replace(/\/\*[\s\S]*?\*\//g, "");
-      const idx = line.indexOf("//");
-      if (idx >= 0) line = line.substring(0, idx);
-    } else if (ext === "sql") {
-      const idx = line.indexOf("--");
-      if (idx >= 0) line = line.substring(0, idx);
-      line = line.replace(/\/\*[\s\S]*?\*\//g, "");
-    }
-    return line.trimEnd();
-  });
-
-  // حذف خطوط خالی اضافی
-  let cleaned: string[] = [];
-  let lastWasEmpty = false;
-  for (const line of lines) {
-    if (line.trim() === "") {
-      if (!lastWasEmpty) cleaned.push("");
-      lastWasEmpty = true;
-    } else {
-      cleaned.push(line);
-      lastWasEmpty = false;
-    }
-  }
-  return cleaned.join("\n").trim();
-}
-
-function isInsideString(line: string, index: number): boolean {
-  let inSingle = false,
-    inDouble = false;
-  for (let i = 0; i < index; i++) {
-    if (line[i] === "'" && !inDouble) inSingle = !inSingle;
-    if (line[i] === '"' && !inSingle) inDouble = !inDouble;
-  }
-  return inSingle || inDouble;
+  const totalSize = filteredFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+  return {
+    content: output,
+    fileCount: filteredFiles.length,
+    totalSize,
+  };
 }
