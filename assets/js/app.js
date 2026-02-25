@@ -2,7 +2,9 @@
 (function () {
   // ==================== توابع هسته (مشترک با سرور) ====================
   const DEFAULT_SKIP_FILES = [
+    // فایل‌های قفل و پیکربندی
     "package-lock.json",
+    "LICENSE",
     "yarn.lock",
     ".prettierrc",
     ".eslintrc",
@@ -20,14 +22,17 @@
     ".env.production",
     ".env.test",
     "composer.lock",
+    // لاگ‌ها
     "npm-debug.log",
     "yarn-error.log",
+    // فایل‌های باینری کوچک (می‌توانند در لیست باشند)
     "*.log",
     "*.pid",
     "*.seed",
     "*.pid.lock",
   ];
   const DEFAULT_SKIP_FOLDERS = [
+    // پوشه‌های رایج
     "node_modules",
     "vendor",
     ".git",
@@ -37,11 +42,16 @@
     "dist",
     "build",
     "coverage",
+    "logs",
+
+    // پوشه‌های Symfony
     "var/cache",
     "var/log",
     "var/sessions",
     "var/tmp",
     "public/bundles",
+
+    // پوشه‌های Laravel
     "storage/app",
     "storage/framework/cache",
     "storage/framework/sessions",
@@ -50,11 +60,15 @@
     "storage/logs",
     "bootstrap/cache",
     "public/storage",
+
+    // پوشه‌های فریم‌ورک‌های جاوااسکریپت
     ".next",
     ".nuxt",
     "out",
     ".svelte-kit",
     ".angular",
+
+    // پوشه‌های کش و بیلد
     ".cache",
     ".parcel-cache",
     ".webpack",
@@ -65,17 +79,23 @@
     "cache",
     ".phpunit.cache",
     ".php-cs-fixer.cache",
+
+    // پوشه‌های تست
     ".nyc_output",
     "cypress/videos",
     "cypress/screenshots",
     ".cypress-cache",
+
+    // بیلدهای عمومی
     "public/build",
     "public/hot",
     "public/css",
     "public/js",
     "public/mix-manifest.json",
   ];
+
   const DEFAULT_SKIP_EXTENSIONS = [
+    // تصاویر
     "jpg",
     "jpeg",
     "png",
@@ -90,30 +110,36 @@
     "eps",
     "raw",
     "xcf",
+    // فایل‌های باینری اجرایی
     "exe",
     "dll",
     "so",
     "dylib",
     "bin",
     "obj",
+    // پایگاه داده
     "db",
     "sqlite",
     "sqlite3",
     "mdb",
+    // آرشیو
     "zip",
     "tar",
     "gz",
     "7z",
     "rar",
+    // اسناد
     "pdf",
     "doc",
     "docx",
     "xls",
     "xlsx",
+    // فونت
     "ttf",
     "otf",
     "woff",
     "woff2",
+    // فایل‌های صوتی/تصویری (اختیاری)
     "mp3",
     "mp4",
     "avi",
@@ -424,8 +450,20 @@
       });
     }
 
+    // اصلاح مهم: تبدیل FileList به ساختار داخلی یکسان با traverseFileTree
     handleFileInput(fileList) {
-      this.files = Array.from(fileList);
+      this.files = Array.from(fileList).map((file) => {
+        const relativePath = file.webkitRelativePath || file.name;
+        const skipFile = this.shouldSkipFile(file.name, relativePath);
+        return {
+          path: relativePath,
+          content: null,
+          isBinary: skipFile,
+          size: file.size,
+          error: null,
+          file: file,
+        };
+      });
       this.renderFoundFileTypes();
       this.updateProcessButton();
       this.showStatus(
@@ -460,9 +498,9 @@
         if (item.isFile) {
           item.file(resolve);
         } else if (item.isDirectory) {
-          // -------- اصلاح مهم: نادیده گرفتن پوشه بر اساس نام آن --------
+          // نادیده گرفتن پوشه‌های ممنوعه بر اساس نام
           if (DEFAULT_SKIP_FOLDERS.includes(item.name)) {
-            resolve(); // این پوشه و همه زیرشاخه‌هایش نادیده گرفته می‌شوند
+            resolve();
             return;
           }
           const dirPath = path + item.name + "/";
@@ -486,7 +524,6 @@
       }).then((file) => {
         if (file) {
           const relativePath = path + file.name;
-          // بررسی نهایی (مثلاً اگر پوشه ممنوعه در میانه مسیر بود)
           if (this.shouldSkipFolder(relativePath)) return;
           const skipFile = this.shouldSkipFile(file.name, relativePath);
           const entry = {

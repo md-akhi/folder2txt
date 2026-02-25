@@ -32,6 +32,7 @@ export interface ProcessResult {
 export const DEFAULT_SKIP_FILES: string[] = [
   // فایل‌های قفل و پیکربندی
   "package-lock.json",
+  "LICENSE",
   "yarn.lock",
   ".prettierrc",
   ".eslintrc",
@@ -71,11 +72,10 @@ export const DEFAULT_SKIP_FOLDERS: string[] = [
   ".idea",
   ".vscode",
   ".vs",
-  "dist/",
-  "build/",
+  "dist",
+  "build",
   "coverage",
-  "logs/",
-  "LICENSE",
+  "logs",
 
   // پوشه‌های Symfony
   "var/cache",
